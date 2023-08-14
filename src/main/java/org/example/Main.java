@@ -84,120 +84,40 @@ public class Main {
         getSearchResultsFor(jobTitle);
         String closeMessagesButtonXPath = "/html/body/div[5]/div[4]/aside/div[1]/header/div[3]/button[2]";
         clickButtonByXPath(closeMessagesButtonXPath);
-        //setFilters();
+        setFilters();
         boolean choice = false;
         do {
-//                 <div id="ember2602" class="jobs-search-results-list__pagination pv5  artdeco-pagination ember-view"><!---->
-//   <ul class="artdeco-pagination__pages artdeco-pagination__pages--number">
-//         <li data-test-pagination-page-btn="1" id="ember2603" class="artdeco-pagination__indicator artdeco-pagination__indicator--number active selected ember-view">  <button aria-current="true" aria-label="Page 1" type="button">
-//     <span>1</span>
-//   </button>
-
-// </li>
-//         <li data-test-pagination-page-btn="2" id="ember2604" class="artdeco-pagination__indicator artdeco-pagination__indicator--number ember-view">  <button aria-label="Page 2" type="button" data-ember-action="" data-ember-action-2605="2605">
-//     <span>2</span>
-//   </button>
-
-// </li>
-//   </ul>
-//     <div class="artdeco-pagination__page-state">
-//       Page 1 of 2
-//     </div>
-
-// <!----></div>
-
-// <div id="ember2602" class="jobs-search-results-list__pagination pv5 jobs-search-results-list__pagination--hide-last-page artdeco-pagination ember-view"><!---->
-//   <ul class="artdeco-pagination__pages artdeco-pagination__pages--number">
-//         <li data-test-pagination-page-btn="1" id="ember2993" class="artdeco-pagination__indicator artdeco-pagination__indicator--number active selected ember-view">  <button aria-current="true" aria-label="Page 1" type="button">
-//     <span>1</span>
-//   </button>
-
-// </li>
-//         <li data-test-pagination-page-btn="2" id="ember2994" class="artdeco-pagination__indicator artdeco-pagination__indicator--number ember-view">  <button aria-label="Page 2" type="button" data-ember-action="" data-ember-action-2995="2995">
-//     <span>2</span>
-//   </button>
-
-// </li>
-//         <li data-test-pagination-page-btn="3" id="ember2996" class="artdeco-pagination__indicator artdeco-pagination__indicator--number ember-view">  <button aria-label="Page 3" type="button" data-ember-action="" data-ember-action-2997="2997">
-//     <span>3</span>
-//   </button>
-
-// </li>
-//         <li data-test-pagination-page-btn="4" id="ember2998" class="artdeco-pagination__indicator artdeco-pagination__indicator--number ember-view">  <button aria-label="Page 4" type="button" data-ember-action="" data-ember-action-2999="2999">
-//     <span>4</span>
-//   </button>
-
-// </li>
-//         <li data-test-pagination-page-btn="5" id="ember3000" class="artdeco-pagination__indicator artdeco-pagination__indicator--number ember-view">  <button aria-label="Page 5" type="button" data-ember-action="" data-ember-action-3001="3001">
-//     <span>5</span>
-//   </button>
-
-// </li>
-//         <li data-test-pagination-page-btn="6" id="ember3002" class="artdeco-pagination__indicator artdeco-pagination__indicator--number ember-view">  <button aria-label="Page 6" type="button" data-ember-action="" data-ember-action-3003="3003">
-//     <span>6</span>
-//   </button>
-
-// </li>
-//         <li data-test-pagination-page-btn="7" id="ember3004" class="artdeco-pagination__indicator artdeco-pagination__indicator--number ember-view">  <button aria-label="Page 7" type="button" data-ember-action="" data-ember-action-3005="3005">
-//     <span>7</span>
-//   </button>
-
-// </li>
-//         <li data-test-pagination-page-btn="8" id="ember3006" class="artdeco-pagination__indicator artdeco-pagination__indicator--number ember-view">  <button aria-label="Page 8" type="button" data-ember-action="" data-ember-action-3007="3007">
-//     <span>8</span>
-//   </button>
-
-// </li>
-//         <li id="ember3008" class="artdeco-pagination__indicator artdeco-pagination__indicator--number ember-view"><button aria-label="Page 9" type="button" data-ember-action="" data-ember-action-3009="3009">
-//   <span>…</span>
-// </button>
-// </li>
-//         <li data-test-pagination-page-btn="40" id="ember3010" class="artdeco-pagination__indicator artdeco-pagination__indicator--number ember-view">  <button aria-label="Page 40" type="button" data-ember-action="" data-ember-action-3011="3011">
-//     <span>40</span>
-//   </button>
-
-// </li>
-//   </ul>
-//     <div class="artdeco-pagination__page-state">
-//       Page 1 of 40
-//     </div>
-
-// <!----></div>
+//
             // Scroll thru the job Description
+
+
             List<WebElement> jobCards = driver
             .findElements(By.xpath("/html/body/div[5]/div[3]/div[4]/div/div/main/div/div[1]/div/ul/li"));
             int i = 1;
-            
+
             for (WebElement card : jobCards) {
                 // /html/body/div[5]/div[3]/div[4]/div/div/main/div/div[1]/div/ul/li[1]
                 WebElement view = driver.findElement(
                     By.xpath("/html/body/div[5]/div[3]/div[4]/div/div/main/div/div[1]/div/ul/li[" + i + "]"));
                     scrollToWebElement(view);
-                    // randomSleep(SHORT_SLEEP);
-                    
-                    ///html/body/div[5]/div[3]/div[4]/div/div/main/div/div[1]/div/ul/li[1]/div/div[1]/div[1]/div[2]/div[1]/a
-                    ///html/body/div[5]/div[3]/div[4]/div/div/main/div/div[1]/div/ul/li[3]/div/div[1]/div[1]/div[2]/div[1]/a
-                    // get the aria label in this element as job Title In Card, 
+                    // get the aria label in this element as job Title In Card,
                     // if it contains any of the MUST_HAVE, then click on the card
                      WebElement aTag = view.findElement(By.cssSelector(".disabled.ember-view.job-card-container__link.job-card-list__title"));
 
         // Extract the aria-label content
                     String jobTitleInCard = aTag.getAttribute("aria-label");
+                    logger.info("jobTitleInCard: " + jobTitleInCard);
 
         // Print the content
 
-                    // String jobTitleInCard = view.findElement(By.xpath("/html/body/div[5]/div[3]/div[4]/div/div/main/div/div[1]/div/ul/li["+i + "]/div/div[1]/div[1]/div[2]/div[1]/a")).getAttribute("aria-label");
                     i++;
 
-                    if (jobTitleInCard == null) {
-                        continue;
-                    }
                     // process job Title in Card by removing special characters with space and split the job Title into words
                     jobTitleInCard = jobTitleInCard.replaceAll("[^a-zA-Z0-9]", " ").toLowerCase();
                     String[] jobTitleInCardWords = jobTitleInCard.split(" ");
-                    
+
                     // check if any of the MUST_HAVE words are in the job Title in Card
-                    
+
                     // scan the jobTitle for must not have words
                     if(hasWords(jobTitleInCardWords, MUST_NOT_HAVE) || !hasWords(jobTitleInCardWords, MUST_HAVE))
                     {
@@ -206,15 +126,33 @@ public class Main {
                     }
                     logger.info("Processing job: " + jobTitleInCard);
                     card.click();
-                    
+
                     // Skipping already applied Jobs
                     String easyApplyBtnInJobDesc = "/html/body/div[5]/div[3]/div[4]/div/div/main/div/div[2]/div/div[2]/div[1]/div/div[1]/div/div[1]/div[1]/div[4]/div/div/div/button";
                     if (!elementExists(easyApplyBtnInJobDesc)) {
                         continue;
                     }
-                    
+
                     chooseToApply(scanner);
                 }
+                // click on the next page
+//            List<WebElement> resultPages = driver.findElements(By.xpath(
+//                    "/html/body/div[4]/div[3]/div[4]/div/div/main/div/div[1]/div/div[5]/ul/li"));
+
+//            logger.info("There are " + resultPages.size() + " pages of results");
+//            int page = 1;
+//            for (WebElement pageButton : resultPages) {
+//                scrollToWebElement(pageButton);
+//                randomSleep(SHORT_SLEEP);
+//                pageButton.click();
+//                logger.info("Page " + page + " of " + resultPages.size());
+//                randomSleep(MEDIUM_SLEEP);
+//                jobCards = driver
+//                        .findElements(By.xpath("/html/body/div[5]/div[3]/div[4]/div/div/main/div/div[1]/div/ul/li"));
+//                logger.info("There are " + jobCards.size() + " jobs on this page");
+//                page++;
+//            }
+//            randomSleep(MEDIUM_SLEEP);
                 choice = offerUserChoices();
             } while (choice);
             // close the browser
@@ -240,25 +178,29 @@ public class Main {
     private static Boolean offerUserChoices() {
         String jobLocation = "United States";
         String jobTitle = "java developer";
-        System.out.println("Choose from Options \n 1. Search new job Title \n 2.Change Job Location 3. exit\n");
+        System.out.println("Choose from Options \n 1. Search new job Title \n 2.Change Job Location \n 3. Click next page & press 3 \n 4. exit\n");
         // take input integer from user
         int choice = scanner.nextInt();
         switch (choice) {
             case 1:
                 System.out.println("Enter new job title");
                 jobTitle = scanner.nextLine();
+                getSearchResultsFor(jobTitle);
                 break;
             case 2:
                 System.out.println("Enter new job location");
                 jobLocation = scanner.nextLine();
                 break;
+            case 3:
+                System.out.println("Assuming you clicked on next page");
+                break;
+
             default: 
                 // log exiting
                 logger.info("Exiting the program");
                 return false;
         }
         // call searchForResults
-        getSearchResultsFor(jobTitle);
         return true;
     }
 
@@ -276,6 +218,7 @@ public class Main {
         {
             System.out.println("Exiting the program");
             closeBrowser();
+            System.exit(0);
         }
         if (input.equalsIgnoreCase("yes") || input.equalsIgnoreCase("y")) {
             // Click on apply button
