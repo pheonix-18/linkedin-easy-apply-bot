@@ -87,10 +87,7 @@ public class Main {
         setFilters();
         boolean choice = false;
         do {
-//
             // Scroll thru the job Description
-
-
             List<WebElement> jobCards = driver
             .findElements(By.xpath("/html/body/div[5]/div[3]/div[4]/div/div/main/div/div[1]/div/ul/li"));
             int i = 1;
@@ -175,17 +172,18 @@ public class Main {
         return mustHave;
     }
     
-    private static Boolean offerUserChoices() {
+    private static boolean offerUserChoices() {
         String jobLocation = "United States";
         String jobTitle = "java developer";
-        System.out.println("Choose from Options \n 1. Search new job Title \n 2.Change Job Location \n 3. Click next page & press 3 \n 4. exit\n");
+        System.out.println("Choose from Options \n 1. Search new job Title \n 2. Change Job Location \n 3. Click next page & press 3 \n 4. exit \n");
         // take input integer from user
         int choice = scanner.nextInt();
         switch (choice) {
             case 1:
-                System.out.println("Enter new job title");
-                jobTitle = scanner.nextLine();
-                getSearchResultsFor(jobTitle);
+                Scanner sc2= new Scanner(System.in); //System.in is a standard input stream
+                System.out.println("Enter new job title\n");
+                jobTitle = sc2.nextLine();              //reads string
+                getSearchResultsFor(jobTitle, true);
                 break;
             case 2:
                 System.out.println("Enter new job location");
@@ -212,9 +210,9 @@ public class Main {
     }
 
     private static void chooseToApply(Scanner scanner) {
-        System.out.println("Do you want to apply for the job? (y/n) e to exit");
+        System.out.println("Do you want to apply for the job? (y/n) e to exit\n");
         String input = scanner.nextLine();
-        if(input.equalsIgnoreCase("e"))
+        if(input.trim().equalsIgnoreCase("e"))
         {
             System.out.println("Exiting the program");
             closeBrowser();
@@ -335,9 +333,19 @@ public class Main {
     }
 
     private static void getSearchResultsFor(String jobTitle) {
-        WebElement searchField = driver
-                .findElement(By.xpath("/html/body/div[5]/header/div/div/div/div[2]/div[2]/div/div/input[1]"));
-        randomSleep(SHORT_SLEEP);
+
+        WebElement searchField = driver.findElement(By.xpath("/html/body/div[5]/header/div/div/div/div[2]/div[2]/div/div/input[1]"));
+        scrollToWebElement(searchField);
+        sendKeysToWebElement(jobTitle, searchField);
+        sendKeysToWebElement("\n", searchField);
+    }
+
+    private static void getSearchResultsFor(String jobTitle, boolean newSearch){
+
+        WebElement searchField = driver.findElement(By.xpath("/html/body/div[5]/header/div/div/div/div[2]/div[1]/div/div/input[1]"));
+        scrollToWebElement(searchField);
+        // Clear the search field
+        searchField.clear();
         sendKeysToWebElement(jobTitle, searchField);
         sendKeysToWebElement("\n", searchField);
     }
