@@ -1,4 +1,4 @@
-credentials.properties
+credentials.propertiesn
 target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/

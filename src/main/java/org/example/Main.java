@@ -31,12 +31,17 @@ public class Main {
     private static Logger logger;
     static Scanner scanner;
 
+    static Random rand;
+
     public static void randomSleep(int sleep) {
         // print a log message
-        logger.info("Sleeping for " + sleep + " seconds");
-        Random rand = new Random();
+
         try {
-            Thread.sleep((rand.nextInt(3) + sleep) * 1000);
+            // sleep for a random number of seconds
+            int sleeptime = rand.nextInt(3000) + (sleep * 1000);
+            Thread.sleep(sleeptime);
+            logger.info("Sleeping for " + sleeptime + " seconds");
+
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -50,10 +55,11 @@ public class Main {
         MUST_HAVE = new ArrayList<String>(
                 Arrays.asList("senior", "java", "full", "stack", "microservices", "engineer", "software", "backend", "spring", "boot", "frontend"));
         scanner = new Scanner(System.in);
+        rand = new Random();
         Properties properties = new Properties();
         FileInputStream in = null;
         try {
-            in = new FileInputStream("../../../credentials.properties");
+            in = new FileInputStream("/Users/pheonix/IdeaProjects/Automation/credentials.properties");
             properties.load(in);
             in.close();
         } catch (FileNotFoundException e) {
@@ -179,7 +185,7 @@ public class Main {
                     String jobTitleInCard = aTag.getAttribute("aria-label");
 
         // Print the content
-                    System.out.println("aria-label content: " + jobTitleInCard);
+
                     // String jobTitleInCard = view.findElement(By.xpath("/html/body/div[5]/div[3]/div[4]/div/div/main/div/div[1]/div/ul/li["+i + "]/div/div[1]/div[1]/div[2]/div[1]/a")).getAttribute("aria-label");
                     i++;
 
@@ -207,12 +213,16 @@ public class Main {
                         continue;
                     }
                     
-                    //chooseToApply(scanner);
+                    chooseToApply(scanner);
                 }
                 choice = offerUserChoices();
             } while (choice);
             // close the browser
-            scanner.close();
+        closeBrowser();
+    }
+
+    private static void closeBrowser() {
+        scanner.close();
         driver.quit();
     }
 
@@ -221,7 +231,6 @@ public class Main {
         for (String word : jobTitleInCardWords) {
             if (WORDS.contains(word)) {
                 mustHave = true;
-                logger.info("Found word: " + word);
                 break;
             }
         }
@@ -230,7 +239,7 @@ public class Main {
     
     private static Boolean offerUserChoices() {
         String jobLocation = "United States";
-        String jobTitle = "full stack java developer";
+        String jobTitle = "java developer";
         System.out.println("Choose from Options \n 1. Search new job Title \n 2.Change Job Location 3. exit\n");
         // take input integer from user
         int choice = scanner.nextInt();
@@ -261,9 +270,14 @@ public class Main {
     }
 
     private static void chooseToApply(Scanner scanner) {
-        System.out.println("Do you want to apply for the job? (yes/no)");
+        System.out.println("Do you want to apply for the job? (y/n) e to exit");
         String input = scanner.nextLine();
-        if (input.equalsIgnoreCase("yes")) {
+        if(input.equalsIgnoreCase("e"))
+        {
+            System.out.println("Exiting the program");
+            closeBrowser();
+        }
+        if (input.equalsIgnoreCase("yes") || input.equalsIgnoreCase("y")) {
             // Click on apply button
             applyForThisJob();
         }
@@ -277,42 +291,51 @@ public class Main {
 
         // xpath for next button:
         // /html/body/div[3]/div/div/div[2]/div/div[2]/form/footer/div[2]/button
-        List<WebElement> nextButton = driver.findElements(By.xpath(
-                "/html/body/div[3]/div/div/div[2]/div/div[2]/form/footer/div[2]/button"));
-        int buttonAppender = 2;
-        while (nextButton.size() != 0) {
-            randomSleep(LONG_SLEEP);
-            nextButton.get(0).click();
-            randomSleep(MEDIUM_SLEEP);
-            nextButton = driver.findElements(By.xpath(
-                    "/html/body/div[3]/div/div/div[2]/div/div[2]/form/footer/div[2]/button[" + buttonAppender + "]"));
-        }
+        try{
+        WebElement formFooter = driver.findElement(By.xpath(
+                "/html/body/div[3]/div/div/div[2]/div/div[2]/form/footer"));
+        WebElement nextButton = formFooter.findElement(By.cssSelector(".artdeco-button--primary.ember-view"));
+            //find the button in the formFooter that has the CSS class artdeco-button--primary ember-view
+            while (formFooter != null && nextButton != null) {
+                js.executeScript("arguments[0].scrollIntoView();", nextButton);
+                //Log found next button
+                logger.info("Found next button");
+                //get next button aria lable
+                String nextButtonAriaLabel = nextButton.getAttribute("aria-label");
+                // log next button aria label
+                logger.info("Next button aria label: " + nextButtonAriaLabel);
+                nextButton.click();
+                //Log Clicked next button
+                logger.info("Clicked next button");
+                randomSleep(SHORT_SLEEP);
+                nextButton = formFooter.findElement(By.cssSelector(".artdeco-button--primary.ember-view"));
+            }
 
         // submit button xpath:
         // /html/body/div[3]/div/div/div[2]/div/div[2]/div/footer/div[3]/button[2]
         /// html/body/div[3]/div/div/div[2]/div/div[2]/div/footer/div[2]/button[2]
-        WebElement submitButton = null;
-        try {
-            submitButton = driver.findElement(By.xpath(
-                    "/html/body/div[3]/div/div/div[2]/div/div[2]/div/footer/div[3]/button[2]"));
+
         } catch (Exception e) {
-            // Send alert to user to manually submit the application
-            logger.info("Please submit the application manually");
-            // Send user press to continue
-            scanner.nextLine();
-            return;
+            //log exception message
+            //print stack trace to output
+            e.printStackTrace();
+            logger.info(e.getMessage());
+//            logger.info("Please submit the application manually");
+//            // Send user press to continue
+//            scanner.nextLine();
+//            return;
             /// html/body/div[3]/div/div/div[2]/div/div/form/footer/div[3]/button
         }
         // scroll to the submit button
+        WebElement submitButton = driver.findElement(By.xpath(
+                "/html/body/div[3]/div/div/div[2]/div/div[2]/div/footer")).findElement(By.cssSelector(".artdeco-button--primary.ember-view"));
         scrollToWebElement(submitButton);
         submitButton.click();
         randomSleep(LONG_SLEEP);
 
         WebElement closeButton = driver.findElement(By.xpath("/html/body/div[3]/div/div/button"));
         closeButton.click();
-        // Sleep for 5 seconds
-        randomSleep(SHORT_SLEEP);
-        // Wait for 5 seconds
+        // Sleep for 5 secondsn
 
     }
 
