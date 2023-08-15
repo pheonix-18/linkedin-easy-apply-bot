@@ -2,6 +2,7 @@ package org.example;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -51,9 +52,9 @@ public class Main {
         driver = new ChromeDriver();
         driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
         js = (JavascriptExecutor) driver;
-        MUST_NOT_HAVE = new ArrayList<String>(Arrays.asList("architect", "devops", "principal", "lead", "net", "nodejs", "node js", "c"));
+        MUST_NOT_HAVE = new ArrayList<String>(Arrays.asList("architect", "devops", "principal", "lead", "net", "nodejs", "w2", "node", "js", "c"));
         MUST_HAVE = new ArrayList<String>(
-                Arrays.asList("senior", "java", "full", "stack", "microservices", "engineer", "software", "backend", "spring", "boot", "frontend"));
+                Arrays.asList("senior", "java", "full", "stack", "microservices", "software", "back", "front", "backend", "spring", "boot", "frontend"));
         scanner = new Scanner(System.in);
         rand = new Random();
         Properties properties = new Properties();
@@ -99,6 +100,7 @@ public class Main {
                     scrollToWebElement(view);
                     // get the aria label in this element as job Title In Card,
                     // if it contains any of the MUST_HAVE, then click on the card
+                //
                      WebElement aTag = view.findElement(By.cssSelector(".disabled.ember-view.job-card-container__link.job-card-list__title"));
 
         // Extract the aria-label content
@@ -110,7 +112,7 @@ public class Main {
                     i++;
 
                     // process job Title in Card by removing special characters with space and split the job Title into words
-                    jobTitleInCard = jobTitleInCard.replaceAll("[^a-zA-Z0-9]", " ").toLowerCase();
+                    jobTitleInCard = jobTitleInCard.trim().replaceAll("[^a-zA-Z0-9]", " ").toLowerCase();
                     String[] jobTitleInCardWords = jobTitleInCard.split(" ");
 
                     // check if any of the MUST_HAVE words are in the job Title in Card
@@ -132,24 +134,7 @@ public class Main {
 
                     chooseToApply(scanner);
                 }
-                // click on the next page
-//            List<WebElement> resultPages = driver.findElements(By.xpath(
-//                    "/html/body/div[4]/div[3]/div[4]/div/div/main/div/div[1]/div/div[5]/ul/li"));
 
-//            logger.info("There are " + resultPages.size() + " pages of results");
-//            int page = 1;
-//            for (WebElement pageButton : resultPages) {
-//                scrollToWebElement(pageButton);
-//                randomSleep(SHORT_SLEEP);
-//                pageButton.click();
-//                logger.info("Page " + page + " of " + resultPages.size());
-//                randomSleep(MEDIUM_SLEEP);
-//                jobCards = driver
-//                        .findElements(By.xpath("/html/body/div[5]/div[3]/div[4]/div/div/main/div/div[1]/div/ul/li"));
-//                logger.info("There are " + jobCards.size() + " jobs on this page");
-//                page++;
-//            }
-//            randomSleep(MEDIUM_SLEEP);
                 choice = offerUserChoices();
             } while (choice);
             // close the browser
@@ -255,27 +240,24 @@ public class Main {
         // submit button xpath:
         // /html/body/div[3]/div/div/div[2]/div/div[2]/div/footer/div[3]/button[2]
         /// html/body/div[3]/div/div/div[2]/div/div[2]/div/footer/div[2]/button[2]
+            // scroll to the submit button
+            WebElement submitButton = driver.findElement(By.xpath(
+                    "/html/body/div[3]/div/div/div[2]/div/div[2]/div/footer")).findElement(By.cssSelector(".artdeco-button--primary.ember-view"));
+            scrollToWebElement(submitButton);
+            submitButton.click();
+            randomSleep(LONG_SLEEP);
 
-        } catch (Exception e) {
-            //log exception message
-            //print stack trace to output
-            e.printStackTrace();
-            logger.info(e.getMessage());
-//            logger.info("Please submit the application manually");
-//            // Send user press to continue
-//            scanner.nextLine();
-//            return;
-            /// html/body/div[3]/div/div/div[2]/div/div/form/footer/div[3]/button
+            WebElement closeButton = driver.findElement(By.xpath("/html/body/div[3]/div/div/button"));
+            closeButton.click();
+
+        } catch(NoSuchElementException e){
+            logger.info("Issue sumbitting application \n Sumbit manually and press enter to continue");
+            scanner.nextLine();
         }
-        // scroll to the submit button
-        WebElement submitButton = driver.findElement(By.xpath(
-                "/html/body/div[3]/div/div/div[2]/div/div[2]/div/footer")).findElement(By.cssSelector(".artdeco-button--primary.ember-view"));
-        scrollToWebElement(submitButton);
-        submitButton.click();
-        randomSleep(LONG_SLEEP);
+        catch (Exception e) {
+            logger.info(e.getMessage());
+        }
 
-        WebElement closeButton = driver.findElement(By.xpath("/html/body/div[3]/div/div/button"));
-        closeButton.click();
         // Sleep for 5 secondsn
 
     }
