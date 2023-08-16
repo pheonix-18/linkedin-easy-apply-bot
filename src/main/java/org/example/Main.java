@@ -1,10 +1,7 @@
 package org.example;
 
-import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.*;
 import org.openqa.selenium.NoSuchElementException;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -97,6 +94,7 @@ public class Main {
                 // /html/body/div[5]/div[3]/div[4]/div/div/main/div/div[1]/div/ul/li[1]
                 WebElement view = driver.findElement(
                     By.xpath("/html/body/div[5]/div[3]/div[4]/div/div/main/div/div[1]/div/ul/li[" + i + "]"));
+
                     scrollToWebElement(view);
                     // get the aria label in this element as job Title In Card,
                     // if it contains any of the MUST_HAVE, then click on the card
@@ -109,6 +107,7 @@ public class Main {
 
         // Print the content
 
+                    logger.info("Clicking job card with xpath: " + "/html/body/div[5]/div[3]/div[4]/div/div/main/div/div[1]/div/ul/li[" + i + "]");
                     i++;
 
                     // process job Title in Card by removing special characters with space and split the job Title into words
@@ -217,14 +216,13 @@ public class Main {
 
         // xpath for next button:
         // /html/body/div[3]/div/div/div[2]/div/div[2]/form/footer/div[2]/button
-        try{
-        WebElement formFooter = driver.findElement(By.xpath(
-                "/html/body/div[3]/div/div/div[2]/div/div[2]/form/footer"));
-        WebElement nextButton = formFooter.findElement(By.cssSelector(".artdeco-button--primary.ember-view"));
+        try {
+            WebElement formFooter = driver.findElement(By.xpath(
+                    "/html/body/div[3]/div/div/div[2]/div/div[2]/form/footer"));
+            WebElement nextButton = formFooter.findElement(By.cssSelector(".artdeco-button--primary.ember-view"));
             //find the button in the formFooter that has the CSS class artdeco-button--primary ember-view
             while (formFooter != null && nextButton != null) {
-                js.executeScript("arguments[0].scrollIntoView();", nextButton);
-                //Log found next button
+                scrollToWebElement(nextButton, false);
                 logger.info("Found next button");
                 //get next button aria lable
                 String nextButtonAriaLabel = nextButton.getAttribute("aria-label");
@@ -237,28 +235,44 @@ public class Main {
                 nextButton = formFooter.findElement(By.cssSelector(".artdeco-button--primary.ember-view"));
             }
 
-        // submit button xpath:
-        // /html/body/div[3]/div/div/div[2]/div/div[2]/div/footer/div[3]/button[2]
-        /// html/body/div[3]/div/div/div[2]/div/div[2]/div/footer/div[2]/button[2]
+            // submit button xpath:
+            // /html/body/div[3]/div/div/div[2]/div/div[2]/div/footer/div[3]/button[2]
+            /// html/body/div[3]/div/div/div[2]/div/div[2]/div/footer/div[2]/button[2]
+//            /html/body/div[3]/div/div/div[2]/div/div[2]/div/footer/div[3]/button[2]
             // scroll to the submit button
+
+
+        }
+        catch (Exception e) {
+            logger.info(e.getMessage());
+        }
+        try {
             WebElement submitButton = driver.findElement(By.xpath(
                     "/html/body/div[3]/div/div/div[2]/div/div[2]/div/footer")).findElement(By.cssSelector(".artdeco-button--primary.ember-view"));
-            scrollToWebElement(submitButton);
+            scrollToWebElement(submitButton, false);
             submitButton.click();
             randomSleep(LONG_SLEEP);
-
-            WebElement closeButton = driver.findElement(By.xpath("/html/body/div[3]/div/div/button"));
-            closeButton.click();
-
-        } catch(NoSuchElementException e){
-            logger.info("Issue sumbitting application \n Sumbit manually and press enter to continue");
-            scanner.nextLine();
+        } catch (NoSuchElementException e) {
+            WebElement submitButton = driver.findElement(By.xpath(
+                    "/html/body/div[3]/div/div/div[2]/div/div/form/footer/")).findElement(By.cssSelector(".artdeco-button--primary.ember-view"));
+            scrollToWebElement(submitButton, false);
+            submitButton.click();
+            randomSleep(LONG_SLEEP);
         }
         catch (Exception e) {
             logger.info(e.getMessage());
         }
 
+        WebElement closeButton = driver.findElement(By.xpath("/html/body/div[3]/div/div/button"));
+        closeButton.click();
         // Sleep for 5 secondsn
+
+        // single click submit jobs
+//        <button aria-label="Submit application" id="ember1409" class="artdeco-button artdeco-button--2 artdeco-button--primary ember-view" type="button"><!---->
+//<span class="artdeco-button__text">
+//                Submit application
+//                </span></button>
+        // xpath: /html/body/div[3]/div/div/div[2]/div/div/form/footer/div[3]/button
 
     }
 
@@ -309,15 +323,21 @@ public class Main {
         randomSleep(SHORT_SLEEP);
     }
 
+    private static void scrollToWebElement(WebElement contractExperienceLevel, boolean sleep) {
+        js.executeScript("arguments[0].scrollIntoView();", contractExperienceLevel);
+        if (sleep)
+            randomSleep(SHORT_SLEEP);
+    }
     private static void clickWebElement(WebElement webElement) {
         js.executeScript("arguments[0].click();", webElement);
         randomSleep(SHORT_SLEEP);
     }
 
     private static void getSearchResultsFor(String jobTitle) {
-
+///html/body/div[4]/header/div/div/div/div[2]/div[2]/div/div[2]/input[1]
         WebElement searchField = driver.findElement(By.xpath("/html/body/div[5]/header/div/div/div/div[2]/div[2]/div/div/input[1]"));
-        scrollToWebElement(searchField);
+        js.executeScript("arguments[0].scrollIntoView();", searchField);
+//        scrollToWebElement(searchField);
         sendKeysToWebElement(jobTitle, searchField);
         sendKeysToWebElement("\n", searchField);
     }
