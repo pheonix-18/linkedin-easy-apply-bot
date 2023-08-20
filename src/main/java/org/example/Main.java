@@ -78,7 +78,7 @@ public class Main {
 
         String jobTitle = "java developer";
         logger.info("Search by default for" + jobTitle);
-        String jobLocation = "United States";
+        String jobLocation = "United tates";
         getSearchResultsFor(jobTitle);
         String closeMessagesButtonXPath = "/html/body/div[5]/div[4]/aside/div[1]/header/div[3]/button[2]";
         clickButtonByXPath(closeMessagesButtonXPath);
