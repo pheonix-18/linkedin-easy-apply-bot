@@ -76,7 +76,7 @@ public class Main {
         loginToLinkedIn();
         randomSleep(SHORT_SLEEP);
 
-        String jobTitle = "full stack java developer";
+        String jobTitle = "java developer";
         logger.info("Search by default for" + jobTitle);
         String jobLocation = "United States";
         getSearchResultsFor(jobTitle);
@@ -85,59 +85,62 @@ public class Main {
         setFilters();
         boolean choice = false;
         do {
-            // Scroll thru the job Description
+
             List<WebElement> jobCards = driver
-            .findElements(By.xpath("/html/body/div[5]/div[3]/div[4]/div/div/main/div/div[1]/div/ul/li"));
+                    .findElements(By.xpath("/html/body/div[5]/div[3]/div[4]/div/div/main/div/div[1]/div/ul/li"));
             int i = 1;
 
             for (WebElement card : jobCards) {
-                // /html/body/div[5]/div[3]/div[4]/div/div/main/div/div[1]/div/ul/li[1]
                 WebElement view = driver.findElement(
-                    By.xpath("/html/body/div[5]/div[3]/div[4]/div/div/main/div/div[1]/div/ul/li[" + i + "]"));
+                        By.xpath("/html/body/div[5]/div[3]/div[4]/div/div/main/div/div[1]/div/ul/li[" + i + "]"));
 
-                    scrollToWebElement(view);
-                    // get the aria label in this element as job Title In Card,
-                    // if it contains any of the MUST_HAVE, then click on the card
-                //
-                     WebElement aTag = view.findElement(By.cssSelector(".disabled.ember-view.job-card-container__link.job-card-list__title"));
+                scrollToWebElement(view);
 
-        // Extract the aria-label content
-                    String jobTitleInCard = aTag.getAttribute("aria-label");
-                    logger.info("jobTitleInCard: " + jobTitleInCard);
+                WebElement aTag = view.findElement(By.cssSelector(".disabled.ember-view.job-card-container__link.job-card-list__title"));
 
-        // Print the content
+                // Extract the aria-label content
+                String jobTitleInCard = aTag.getAttribute("aria-label");
+                logger.info("jobTitleInCard: " + jobTitleInCard);
+                i++;
+                // process job Title in Card by removing special characters except space with space and split the job Title into words
 
-                    logger.info("Clicking job card with xpath: " + "/html/body/div[5]/div[3]/div[4]/div/div/main/div/div[1]/div/ul/li[" + i + "]");
-                    i++;
+                jobTitleInCard = jobTitleInCard.trim().replaceAll("[^a-zA-Z0-9]", " ");
+                String[] jobTitleInCardWords = jobTitleInCard.split(" ");
+                // for each word in job title, trim it and convert it to lower case using stream API
+                jobTitleInCardWords = Arrays.stream(jobTitleInCardWords).map(String::trim).map(String::toLowerCase).toArray(String[]::new);
 
-                    // process job Title in Card by removing special characters with space and split the job Title into words
-                    jobTitleInCard = jobTitleInCard.trim().replaceAll("[^a-zA-Z0-9]", " ").toLowerCase();
-                    String[] jobTitleInCardWords = jobTitleInCard.split(" ");
+                // check if any of the MUST_HAVE words are in the job Title in Card
 
-                    // check if any of the MUST_HAVE words are in the job Title in Card
-
-                    // scan the jobTitle for must not have words
-                    if(hasWords(jobTitleInCardWords, MUST_NOT_HAVE) || !hasWords(jobTitleInCardWords, MUST_HAVE))
-                    {
-                        logger.info("Skipping job: " + jobTitleInCard);
-                        continue;
-                    }
-                    logger.info("Processing job: " + jobTitleInCard);
-                    card.click();
-
-                    // Skipping already applied Jobs
-                    String easyApplyBtnInJobDesc = "/html/body/div[5]/div[3]/div[4]/div/div/main/div/div[2]/div/div[2]/div[1]/div/div[1]/div/div[1]/div[1]/div[4]/div/div/div/button";
-                    if (!elementExists(easyApplyBtnInJobDesc)) {
-                        continue;
-                    }
-
-                    chooseToApply(scanner);
+                // scan the jobTitle for must not have words
+                if (hasWords(jobTitleInCardWords, MUST_NOT_HAVE) || !hasWords(jobTitleInCardWords, MUST_HAVE)) {
+                    logger.info("Skipping job: " + jobTitleInCard);
+                    continue;
                 }
+                logger.info("Processing job: " + jobTitleInCard);
+                card.click();
 
-                choice = offerUserChoices();
-            } while (choice);
-            // close the browser
+                randomSleep(SHORT_SLEEP);
+                if (!isThisJobApplied()) {
+                    logger.info("Job was previously applied");
+                    continue;
+                }
+                logger.info("Job was not previously applied");
+                chooseToApply(scanner);
+            }
+            choice = offerUserChoices();
+        } while (choice);
         closeBrowser();
+    }
+
+    private static boolean isThisJobApplied() {
+        boolean containsClass;
+        String easyApplyBtnDivXPath = "/html/body/div[5]/div[3]/div[4]/div/div/main/div/div[2]/div/div[2]/div[1]/div/div[1]/div/div[1]/div[1]/div[4]/div/div/div";
+
+        WebElement easyApplyBtnDiv = driver.findElement(By.xpath(easyApplyBtnDivXPath));
+        // Check if the easyApplyBtnDiv has class "jobs-apply-button--top-card"
+        String className = "jobs-apply-button--top-card";
+        containsClass = (boolean) js.executeScript("return arguments[0].classList.contains(arguments[1])", easyApplyBtnDiv, className);
+        return containsClass;
     }
 
     private static void closeBrowser() {
@@ -155,16 +158,15 @@ public class Main {
         }
         return mustHave;
     }
-    
+
     private static boolean offerUserChoices() {
         String jobLocation = "United States";
         String jobTitle = "java developer";
         System.out.println("Choose from Options \n 1. Search new job Title \n 2. Change Job Location \n 3. Click next page & press 3 \n 4. exit \n");
-        // take input integer from user
         int choice = scanner.nextInt();
         switch (choice) {
             case 1:
-                Scanner sc2= new Scanner(System.in); //System.in is a standard input stream
+                Scanner sc2 = new Scanner(System.in); //System.in is a standard input stream
                 System.out.println("Enter new job title\n");
                 jobTitle = sc2.nextLine();              //reads string
                 getSearchResultsFor(jobTitle, true);
@@ -177,7 +179,7 @@ public class Main {
                 System.out.println("Assuming you clicked on next page");
                 break;
 
-            default: 
+            default:
                 // log exiting
                 logger.info("Exiting the program");
                 return false;
@@ -194,10 +196,9 @@ public class Main {
     }
 
     private static void chooseToApply(Scanner scanner) {
-        System.out.println("Do you want to apply for the job? (y/n) e to exit\n");
+        System.out.println("Do you want to apply for the job? (y/n) e to exit");
         String input = scanner.nextLine();
-        if(input.trim().equalsIgnoreCase("e"))
-        {
+        if (input.trim().equalsIgnoreCase("e")) {
             System.out.println("Exiting the program");
             closeBrowser();
             System.exit(0);
@@ -207,7 +208,6 @@ public class Main {
             applyForThisJob();
         }
     }
-    //disabled ember-view job-card-container__link job-card-list__title
 
     private static void applyForThisJob() {
         WebElement applyButton = driver.findElement(By.xpath(
@@ -216,6 +216,13 @@ public class Main {
 
         // xpath for next button:
         // /html/body/div[3]/div/div/div[2]/div/div[2]/form/footer/div[2]/button
+
+        // submit button xpath:
+        // /html/body/div[3]/div/div/div[2]/div/div[2]/div/footer/div[3]/button[2]
+        /// html/body/div[3]/div/div/div[2]/div/div[2]/div/footer/div[2]/button[2]
+        ///html/body/div[3]/div/div/div[2]/div/div[2]/div/footer/div[3]/button[2]
+        // scroll to the submit button
+
         try {
             WebElement formFooter = driver.findElement(By.xpath(
                     "/html/body/div[3]/div/div/div[2]/div/div[2]/form/footer"));
@@ -224,26 +231,13 @@ public class Main {
             while (formFooter != null && nextButton != null) {
                 scrollToWebElement(nextButton, false);
                 logger.info("Found next button");
-                //get next button aria lable
-                String nextButtonAriaLabel = nextButton.getAttribute("aria-label");
-                // log next button aria label
-                logger.info("Next button aria label: " + nextButtonAriaLabel);
                 nextButton.click();
-                //Log Clicked next button
                 logger.info("Clicked next button");
                 randomSleep(SHORT_SLEEP);
                 nextButton = formFooter.findElement(By.cssSelector(".artdeco-button--primary.ember-view"));
             }
 
-            // submit button xpath:
-            // /html/body/div[3]/div/div/div[2]/div/div[2]/div/footer/div[3]/button[2]
-            /// html/body/div[3]/div/div/div[2]/div/div[2]/div/footer/div[2]/button[2]
-//            /html/body/div[3]/div/div/div[2]/div/div[2]/div/footer/div[3]/button[2]
-            // scroll to the submit button
-
-
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             logger.info(e.getMessage());
         }
         try {
@@ -251,28 +245,19 @@ public class Main {
                     "/html/body/div[3]/div/div/div[2]/div/div[2]/div/footer")).findElement(By.cssSelector(".artdeco-button--primary.ember-view"));
             scrollToWebElement(submitButton, false);
             submitButton.click();
-            randomSleep(LONG_SLEEP);
+            randomSleep(MEDIUM_SLEEP);
         } catch (NoSuchElementException e) {
             WebElement submitButton = driver.findElement(By.xpath(
-                    "/html/body/div[3]/div/div/div[2]/div/div/form/footer/")).findElement(By.cssSelector(".artdeco-button--primary.ember-view"));
+                    "/html/body/div[3]/div/div/div[2]/div/div/form/footer")).findElement(By.cssSelector(".artdeco-button--primary.ember-view"));
             scrollToWebElement(submitButton, false);
             submitButton.click();
-            randomSleep(LONG_SLEEP);
-        }
-        catch (Exception e) {
+            randomSleep(MEDIUM_SLEEP);
+        } catch (Exception e) {
             logger.info(e.getMessage());
         }
 
         WebElement closeButton = driver.findElement(By.xpath("/html/body/div[3]/div/div/button"));
         closeButton.click();
-        // Sleep for 5 secondsn
-
-        // single click submit jobs
-//        <button aria-label="Submit application" id="ember1409" class="artdeco-button artdeco-button--2 artdeco-button--primary ember-view" type="button"><!---->
-//<span class="artdeco-button__text">
-//                Submit application
-//                </span></button>
-        // xpath: /html/body/div[3]/div/div/div[2]/div/div/form/footer/div[3]/button
 
     }
 
@@ -328,25 +313,24 @@ public class Main {
         if (sleep)
             randomSleep(SHORT_SLEEP);
     }
+
     private static void clickWebElement(WebElement webElement) {
         js.executeScript("arguments[0].click();", webElement);
         randomSleep(SHORT_SLEEP);
     }
 
     private static void getSearchResultsFor(String jobTitle) {
-///html/body/div[4]/header/div/div/div/div[2]/div[2]/div/div[2]/input[1]
+        ///html/body/div[4]/header/div/div/div/div[2]/div[2]/div/div[2]/input[1]
         WebElement searchField = driver.findElement(By.xpath("/html/body/div[5]/header/div/div/div/div[2]/div[2]/div/div/input[1]"));
         js.executeScript("arguments[0].scrollIntoView();", searchField);
-//        scrollToWebElement(searchField);
         sendKeysToWebElement(jobTitle, searchField);
         sendKeysToWebElement("\n", searchField);
     }
 
-    private static void getSearchResultsFor(String jobTitle, boolean newSearch){
+    private static void getSearchResultsFor(String jobTitle, boolean newSearch) {
 
         WebElement searchField = driver.findElement(By.xpath("/html/body/div[5]/header/div/div/div/div[2]/div[1]/div/div/input[1]"));
         scrollToWebElement(searchField);
-        // Clear the search field
         searchField.clear();
         sendKeysToWebElement(jobTitle, searchField);
         sendKeysToWebElement("\n", searchField);
@@ -360,7 +344,6 @@ public class Main {
     private static void loginToLinkedIn() {
 
         driver.get(linkedInSite);
-        // Wait for page to load for 5 seconds
         enterIntoTextFieldById(emailInputBoxID, loginEmail);
         enterIntoTextFieldById(passwordInputBoxID, loginPass);
         String loginButtonXPath = "//button[@data-id='sign-in-form__submit-btn']";
