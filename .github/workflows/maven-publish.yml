@@ -1,0 +1,68 @@
+# # This workflow will build a package using Maven and then publish it to GitHub packages when a release is created
+# # For more information see: https://github.com/actions/setup-java/blob/main/docs/advanced-usage.md#apache-maven-with-a-settings-path
+
+# name: Maven Package
+
+# on: [push]
+
+# jobs:
+#   build:
+
+#     runs-on: macos-latest
+
+#     steps:
+#     - uses: actions/checkout@v3
+#     - name: Set up JDK 11
+#       uses: actions/setup-java@v3
+#       with:
+#         java-version: '11'
+#         distribution: 'corretto'
+
+#     - name: Build with Maven
+#       run: mvn clean package
+
+#     # This workflow will build a package using Maven and then publish it to GitHub packages when a release is created
+# # For more information see: https://github.com/actions/setup-java/blob/main/docs/advanced-usage.md#apache-maven-with-a-settings-path
+
+name: Maven Package
+
+on: [push]
+  
+
+jobs:
+  build:
+    permissions: write-all
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up JDK 11
+      uses: actions/setup-java@v3
+      with:
+        java-version: '11'
+        distribution: 'corretto'
+
+    - name: Build with Maven
+      run: mvn clean package
+      
+    # - name: Create Release
+    #   id: create_release
+    #   uses: actions/create-release@v1
+    #   env:
+    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    #   with:
+    #     tag_name: ${{ github.ref }}
+    #     release_name: Release ${{ github.ref }}
+    #     draft: false
+    #     prerelease: false
+
+    - name: Upload Release Asset
+      id: upload-release-asset 
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: ./target/Automation-1.0-SNAPSHOT.jar # Replace with your JAR's path and name
+        asset_name: Automation-1.0-SNAPSHOT.jar # Replace with your JAR's name
+        asset_content_type: application/java-archive
