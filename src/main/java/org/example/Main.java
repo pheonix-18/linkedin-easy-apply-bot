@@ -49,7 +49,7 @@ public class Main {
         driver = new ChromeDriver();
         driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
         js = (JavascriptExecutor) driver;
-        MUST_NOT_HAVE = new ArrayList<String>(Arrays.asList("architect", "devops", "principal", "lead", "net", "nodejs", "w2", "node", "js", "c"));
+        MUST_NOT_HAVE = new ArrayList<String>(Arrays.asList("architect", "service", "servicenow", "devops", "principal", "lead", "net", "nodejs", "w2", "node", "js", "c"));
         MUST_HAVE = new ArrayList<String>(
                 Arrays.asList("senior", "java", "full", "stack", "microservices", "software", "back", "front", "backend", "spring", "boot", "frontend"));
         scanner = new Scanner(System.in);
@@ -57,7 +57,7 @@ public class Main {
         Properties properties = new Properties();
         FileInputStream in = null;
         try {
-            in = new FileInputStream("/Users/pheonix/IdeaProjects/Automation/credentials.properties");
+            in = new FileInputStream("credentials.properties");
             properties.load(in);
             in.close();
         } catch (FileNotFoundException e) {
