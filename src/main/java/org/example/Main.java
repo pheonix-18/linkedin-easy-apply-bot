@@ -3,6 +3,9 @@ package org.example;
 import org.openqa.selenium.*;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.Wait;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,11 +32,12 @@ public class Main {
     private static Logger logger;
     static Scanner scanner;
 
+    static Wait<WebDriver> wait;
+
     static Random rand;
 
     public static void randomSleep(int sleep) {
         // print a log message
-
         try {
             // sleep for a random number of seconds
             int sleeptime = rand.nextInt(3000) + (sleep * 1000);
@@ -54,6 +58,7 @@ public class Main {
                 Arrays.asList("senior", "java", "full", "stack", "microservices", "software", "back", "front", "backend", "spring", "boot", "frontend"));
         scanner = new Scanner(System.in);
         rand = new Random();
+        wait = new WebDriverWait(driver, Duration.ofSeconds(10)).ignoring(StaleElementReferenceException.class);
         Properties properties = new Properties();
         FileInputStream in = null;
         try {
@@ -125,15 +130,43 @@ public class Main {
                     continue;
                 }
                 logger.info("Job was not previously applied");
-                chooseToApply(scanner);
+
+                // Show job description
+                // article tag html /html/body/div[5]/div[3]/div[4]/div/div/main/div/div[2]/div/div[2]/div[1]/div/div[4]/article/
+                String jobDescriptionXPath = "/html/body/div[5]/div[3]/div[4]/div/div/main/div/div[2]/div/div[2]/div[1]/div/div[4]/article";
+                // show text in this html tag
+//                WebElement jobDescription = driver.findElement(By.class(jobDescriptionXPath));
+                WebElement jobDescription = driver.findElement(By.cssSelector("article.jobs-description__container"));
+
+                String jobDescriptionText = jobDescription.getText();
+                logger.info("Job Description: " + jobDescriptionText);
+                if(filterJobDescription(jobDescriptionText))
+                    continue;
+                //chooseToApply(scanner);
             }
             choice = offerUserChoices();
         } while (choice);
         closeBrowser();
     }
 
+    private static boolean filterJobDescription(String jobDescriptionText) {
+        //Replace all special characters with space
+        jobDescriptionText = jobDescriptionText.trim().replaceAll("[^a-zA-Z0-9]", " ");
+        //Replace all multiple spaces with single space
+        jobDescriptionText = jobDescriptionText.replaceAll("\\s+", " ");
+        //Convert to lower case
+        jobDescriptionText = jobDescriptionText.toLowerCase();
+        String defaultExperience = "9 years";
+        if(jobDescriptionText.contains(defaultExperience)){
+            logger.info("Filtering job with experience: " + defaultExperience);
+            return true;
+        }
+        return false;
+    }
+
     private static boolean isThisJobApplied() {
         boolean containsClass;
+
         String easyApplyBtnDivXPath = "/html/body/div[5]/div[3]/div[4]/div/div/main/div/div[2]/div/div[2]/div[1]/div/div[1]/div/div[1]/div[1]/div[4]/div/div/div";
 
         WebElement easyApplyBtnDiv = driver.findElement(By.xpath(easyApplyBtnDivXPath));
@@ -161,7 +194,7 @@ public class Main {
 
     private static boolean offerUserChoices() {
         String jobLocation = "United States";
-        String jobTitle = "java developer";
+        String jobTitle = "full stack java developer";
         System.out.println("Choose from Options \n 1. Search new job Title \n 2. Change Job Location \n 3. Click next page & press 3 \n 4. exit \n");
         int choice = scanner.nextInt();
         switch (choice) {
@@ -245,22 +278,24 @@ public class Main {
                     "/html/body/div[3]/div/div/div[2]/div/div[2]/div/footer")).findElement(By.cssSelector(".artdeco-button--primary.ember-view"));
             scrollToWebElement(submitButton, false);
             submitButton.click();
-            randomSleep(MEDIUM_SLEEP);
         } catch (NoSuchElementException e) {
             WebElement submitButton = driver.findElement(By.xpath(
                     "/html/body/div[3]/div/div/div[2]/div/div/form/footer")).findElement(By.cssSelector(".artdeco-button--primary.ember-view"));
             scrollToWebElement(submitButton, false);
             submitButton.click();
-            randomSleep(MEDIUM_SLEEP);
         } catch (Exception e) {
             logger.info(e.getMessage());
         }
 
-        WebElement closeButton = driver.findElement(By.xpath("/html/body/div[3]/div/div/button"));
-        closeButton.click();
-
+        String closeButtonXPath = "/html/body/div[3]/div/div/button";
+        new WebDriverWait(driver, Duration.ofSeconds(10))
+                .ignoring(StaleElementReferenceException.class)
+                .until((WebDriver d)->{
+                    d.findElement(By.xpath(closeButtonXPath)).click();
+                    return true;
+                });
     }
-
+    //
     private static void setFilters() {
 
         String allFiltersButtonXPath = "//div[@class='relative mr2']/button";
@@ -305,7 +340,6 @@ public class Main {
 
     private static void scrollToWebElement(WebElement contractExperienceLevel) {
         js.executeScript("arguments[0].scrollIntoView();", contractExperienceLevel);
-        randomSleep(SHORT_SLEEP);
     }
 
     private static void scrollToWebElement(WebElement contractExperienceLevel, boolean sleep) {
@@ -316,12 +350,20 @@ public class Main {
 
     private static void clickWebElement(WebElement webElement) {
         js.executeScript("arguments[0].click();", webElement);
-        randomSleep(SHORT_SLEEP);
     }
 
     private static void getSearchResultsFor(String jobTitle) {
-        ///html/body/div[4]/header/div/div/div/div[2]/div[2]/div/div[2]/input[1]
-        WebElement searchField = driver.findElement(By.xpath("/html/body/div[5]/header/div/div/div/div[2]/div[2]/div/div/input[1]"));
+        String searchFieldXPathType1 = "/html/body/div[5]/header/div/div/div/div[2]/div[2]/div/div/input[1]";
+        String searchFieldXPathType2 = "/html/body/div[4]/header/div/div/div/div[2]/div[2]/div/div[2]/input[1]";
+        WebElement searchField = null;
+        try {
+            searchField = driver.findElement(By.xpath(searchFieldXPathType1));
+        }
+        catch(Exception e){
+            searchField = driver.findElement(By.xpath(searchFieldXPathType2));
+        }
+        WebElement finalSearchField = searchField;
+        wait.until(d -> finalSearchField.isDisplayed());
         js.executeScript("arguments[0].scrollIntoView();", searchField);
         sendKeysToWebElement(jobTitle, searchField);
         sendKeysToWebElement("\n", searchField);
@@ -352,9 +394,10 @@ public class Main {
     }
 
     private static void clickButtonByXPath(String xpath) {
+
         WebElement button = driver.findElement(By.xpath(xpath));
+        wait.until(d -> button.isDisplayed());
         button.click();
-        randomSleep(SHORT_SLEEP);
     }
 
     private static void enterIntoTextFieldById(String inputBoxId, String inputText) {
