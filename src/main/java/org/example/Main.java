@@ -3,6 +3,8 @@ package org.example;
 import org.openqa.selenium.*;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.support.ui.Wait;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,6 +13,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.*;
+import java.util.stream.Collectors;
 
 // Press Shift twice to open the Search Everywhere dialog and type `show whitespaces`,
 // then press Enter. You can now see whitespace characters in your code.
@@ -29,11 +32,14 @@ public class Main {
     private static Logger logger;
     static Scanner scanner;
 
+    static Properties settingsProperties;
+
+    static Wait<WebDriver> wait;
+
     static Random rand;
 
     public static void randomSleep(int sleep) {
         // print a log message
-
         try {
             // sleep for a random number of seconds
             int sleeptime = rand.nextInt(3000) + (sleep * 1000);
@@ -49,15 +55,31 @@ public class Main {
         driver = new ChromeDriver();
         driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
         js = (JavascriptExecutor) driver;
-        MUST_NOT_HAVE = new ArrayList<String>(Arrays.asList("architect", "devops", "principal", "lead", "net", "nodejs", "w2", "node", "js", "c"));
-        MUST_HAVE = new ArrayList<String>(
-                Arrays.asList("senior", "java", "full", "stack", "microservices", "software", "back", "front", "backend", "spring", "boot", "frontend"));
+        Properties credentialsProperties = getProperties("credentials.properties");
+        loginEmail = credentialsProperties.getProperty("username");
+        loginPass = credentialsProperties.getProperty("password");
+        settingsProperties = getProperties("settings.properties");;
+
+        String property = settingsProperties.getProperty("skipJobsHavingTitleWordsInThisList");
+        List<String> mustNotHave = Arrays.asList(property.split(","));
+        mustNotHave = Arrays.stream(mustNotHave.toArray(new String[0])).map(String::trim).collect(Collectors.toList());
+        MUST_NOT_HAVE = new ArrayList<String>(mustNotHave);
+        List<String> mustHave = Arrays.asList(settingsProperties.getProperty("askToApplyForJobsWithTitleWordsInThisList")
+                .split(","));
+        // trim each word in the list
+        mustHave = Arrays.stream(mustHave.toArray(new String[0])).map(String::trim).collect(Collectors.toList());
+        MUST_HAVE = new ArrayList<String>(mustHave);
         scanner = new Scanner(System.in);
         rand = new Random();
+        wait = new WebDriverWait(driver, Duration.ofSeconds(10)).ignoring(StaleElementReferenceException.class);
+
+    }
+
+    private static Properties getProperties(String filePath) {
         Properties properties = new Properties();
         FileInputStream in = null;
         try {
-            in = new FileInputStream("/Users/pheonix/IdeaProjects/Automation/credentials.properties");
+            in = new FileInputStream(filePath);
             properties.load(in);
             in.close();
         } catch (FileNotFoundException e) {
@@ -65,9 +87,7 @@ public class Main {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        loginEmail = properties.getProperty("username");
-        loginPass = properties.getProperty("password");
-
+        return properties;
     }
 
     public static void main(String[] args) {
@@ -76,9 +96,9 @@ public class Main {
         loginToLinkedIn();
         randomSleep(SHORT_SLEEP);
 
-        String jobTitle = "java developer";
+        String jobTitle = settingsProperties.getProperty("defaultJobTitle", "full stack java developer");
         logger.info("Search by default for" + jobTitle);
-        String jobLocation = "United States";
+        String jobLocation = settingsProperties.getProperty("defaultJobLocation", "United States");
         getSearchResultsFor(jobTitle);
         String closeMessagesButtonXPath = "/html/body/div[5]/div[4]/aside/div[1]/header/div[3]/button[2]";
         clickButtonByXPath(closeMessagesButtonXPath);
@@ -105,14 +125,10 @@ public class Main {
                 // process job Title in Card by removing special characters except space with space and split the job Title into words
 
                 jobTitleInCard = jobTitleInCard.trim().replaceAll("[^a-zA-Z0-9]", " ");
-                String[] jobTitleInCardWords = jobTitleInCard.split(" ");
-                // for each word in job title, trim it and convert it to lower case using stream API
-                jobTitleInCardWords = Arrays.stream(jobTitleInCardWords).map(String::trim).map(String::toLowerCase).toArray(String[]::new);
-
-                // check if any of the MUST_HAVE words are in the job Title in Card
-
+                // remove mulitple spaces with single space
+                jobTitleInCard = jobTitleInCard.replaceAll("\\s+", " ").toLowerCase();
                 // scan the jobTitle for must not have words
-                if (hasWords(jobTitleInCardWords, MUST_NOT_HAVE) || !hasWords(jobTitleInCardWords, MUST_HAVE)) {
+                if (hasWords(jobTitleInCard, MUST_NOT_HAVE) || !hasWords(jobTitleInCard, MUST_HAVE)) {
                     logger.info("Skipping job: " + jobTitleInCard);
                     continue;
                 }
@@ -124,7 +140,14 @@ public class Main {
                     logger.info("Job was previously applied");
                     continue;
                 }
-                logger.info("Job was not previously applied");
+                String jobDescriptionXPath = "/html/body/div[5]/div[3]/div[4]/div/div/main/div/div[2]/div/div[2]/div[1]/div/div[4]/article";
+//                WebElement jobDescription = driver.findElement(By.class(jobDescriptionXPath));
+                WebElement jobDescription = driver.findElement(By.cssSelector("article.jobs-description__container"));
+
+                String jobDescriptionText = jobDescription.getText();
+                logger.info("Job Description: " + jobDescriptionText);
+                if(filterJobDescription(jobDescriptionText))
+                    continue;
                 chooseToApply(scanner);
             }
             choice = offerUserChoices();
@@ -132,14 +155,42 @@ public class Main {
         closeBrowser();
     }
 
+    private static boolean filterJobDescription(String jobDescriptionText) {
+        //Replace all special characters with space
+        jobDescriptionText = jobDescriptionText.trim().replaceAll("[^a-zA-Z0-9]", " ");
+        //Replace all multiple spaces with single space
+        jobDescriptionText = jobDescriptionText.replaceAll("\\s+", " ");
+        //Convert to lower case
+        jobDescriptionText = jobDescriptionText.toLowerCase();
+        String defaultExperience = settingsProperties.getProperty("filterJobsThatNeedMoreThanThisYearsOfExperience", "9");
+        int defaultExp = Integer.valueOf(defaultExperience);
+        List<String> excludeExperienceWords = new ArrayList<>();
+        while(defaultExp < 14){
+            excludeExperienceWords.add(defaultExp + " years");
+            defaultExp++;
+        }
+        for(String word: excludeExperienceWords) {
+            if (jobDescriptionText.contains(word)) {
+                logger.info("Filtering job with experience: " + word);
+                return true;
+            }
+        }
+        return false;
+    }
+
     private static boolean isThisJobApplied() {
         boolean containsClass;
-        String easyApplyBtnDivXPath = "/html/body/div[5]/div[3]/div[4]/div/div/main/div/div[2]/div/div[2]/div[1]/div/div[1]/div/div[1]/div[1]/div[4]/div/div/div";
+        try {
+            String easyApplyBtnDivXPath = "/html/body/div[5]/div[3]/div[4]/div/div/main/div/div[2]/div/div[2]/div[1]/div/div[1]/div/div[1]/div[1]/div[4]/div/div/div";
 
-        WebElement easyApplyBtnDiv = driver.findElement(By.xpath(easyApplyBtnDivXPath));
-        // Check if the easyApplyBtnDiv has class "jobs-apply-button--top-card"
-        String className = "jobs-apply-button--top-card";
-        containsClass = (boolean) js.executeScript("return arguments[0].classList.contains(arguments[1])", easyApplyBtnDiv, className);
+            WebElement easyApplyBtnDiv = driver.findElement(By.xpath(easyApplyBtnDivXPath));
+            // Check if the easyApplyBtnDiv has class "jobs-apply-button--top-card"
+            String className = "jobs-apply-button--top-card";
+            containsClass = (boolean) js.executeScript("return arguments[0].classList.contains(arguments[1])", easyApplyBtnDiv, className);
+        }
+        catch (Exception e){
+            containsClass = false;
+        }
         return containsClass;
     }
 
@@ -148,10 +199,12 @@ public class Main {
         driver.quit();
     }
 
-    private static boolean hasWords(String[] jobTitleInCardWords, List<String> WORDS) {
+    private static boolean hasWords(String jobTitle, List<String> WORDS) {
         boolean mustHave = false;
-        for (String word : jobTitleInCardWords) {
-            if (WORDS.contains(word)) {
+        //check if the jobTitleInCardWords contains any of the words in the list
+        for (String word : WORDS) {
+            if (jobTitle.contains(word)) {
+                logger.info("Found word: " + word + " in job title: " + jobTitle);
                 mustHave = true;
                 break;
             }
@@ -161,7 +214,7 @@ public class Main {
 
     private static boolean offerUserChoices() {
         String jobLocation = "United States";
-        String jobTitle = "java developer";
+        String jobTitle = "full stack java developer";
         System.out.println("Choose from Options \n 1. Search new job Title \n 2. Change Job Location \n 3. Click next page & press 3 \n 4. exit \n");
         int choice = scanner.nextInt();
         switch (choice) {
@@ -245,22 +298,24 @@ public class Main {
                     "/html/body/div[3]/div/div/div[2]/div/div[2]/div/footer")).findElement(By.cssSelector(".artdeco-button--primary.ember-view"));
             scrollToWebElement(submitButton, false);
             submitButton.click();
-            randomSleep(MEDIUM_SLEEP);
         } catch (NoSuchElementException e) {
             WebElement submitButton = driver.findElement(By.xpath(
                     "/html/body/div[3]/div/div/div[2]/div/div/form/footer")).findElement(By.cssSelector(".artdeco-button--primary.ember-view"));
             scrollToWebElement(submitButton, false);
             submitButton.click();
-            randomSleep(MEDIUM_SLEEP);
         } catch (Exception e) {
             logger.info(e.getMessage());
         }
 
-        WebElement closeButton = driver.findElement(By.xpath("/html/body/div[3]/div/div/button"));
-        closeButton.click();
-
+        String closeButtonXPath = "/html/body/div[3]/div/div/button";
+        new WebDriverWait(driver, Duration.ofSeconds(10))
+                .ignoring(StaleElementReferenceException.class)
+                .until((WebDriver d)->{
+                    d.findElement(By.xpath(closeButtonXPath)).click();
+                    return true;
+                });
     }
-
+    //
     private static void setFilters() {
 
         String allFiltersButtonXPath = "//div[@class='relative mr2']/button";
@@ -305,7 +360,6 @@ public class Main {
 
     private static void scrollToWebElement(WebElement contractExperienceLevel) {
         js.executeScript("arguments[0].scrollIntoView();", contractExperienceLevel);
-        randomSleep(SHORT_SLEEP);
     }
 
     private static void scrollToWebElement(WebElement contractExperienceLevel, boolean sleep) {
@@ -316,12 +370,20 @@ public class Main {
 
     private static void clickWebElement(WebElement webElement) {
         js.executeScript("arguments[0].click();", webElement);
-        randomSleep(SHORT_SLEEP);
     }
 
     private static void getSearchResultsFor(String jobTitle) {
-        ///html/body/div[4]/header/div/div/div/div[2]/div[2]/div/div[2]/input[1]
-        WebElement searchField = driver.findElement(By.xpath("/html/body/div[5]/header/div/div/div/div[2]/div[2]/div/div/input[1]"));
+        String searchFieldXPathType1 = "/html/body/div[5]/header/div/div/div/div[2]/div[2]/div/div/input[1]";
+        String searchFieldXPathType2 = "/html/body/div[4]/header/div/div/div/div[2]/div[2]/div/div[2]/input[1]";
+        WebElement searchField = null;
+        try {
+            searchField = driver.findElement(By.xpath(searchFieldXPathType1));
+        }
+        catch(Exception e){
+            searchField = driver.findElement(By.xpath(searchFieldXPathType2));
+        }
+        WebElement finalSearchField = searchField;
+        wait.until(d -> finalSearchField.isDisplayed());
         js.executeScript("arguments[0].scrollIntoView();", searchField);
         sendKeysToWebElement(jobTitle, searchField);
         sendKeysToWebElement("\n", searchField);
@@ -352,9 +414,10 @@ public class Main {
     }
 
     private static void clickButtonByXPath(String xpath) {
+
         WebElement button = driver.findElement(By.xpath(xpath));
+        wait.until(d -> button.isDisplayed());
         button.click();
-        randomSleep(SHORT_SLEEP);
     }
 
     private static void enterIntoTextFieldById(String inputBoxId, String inputText) {
