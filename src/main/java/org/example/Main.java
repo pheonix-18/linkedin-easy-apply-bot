@@ -384,11 +384,16 @@ public class Main {
     }
 
     private static void getSearchResultsFor(String jobTitle) {
+
         String searchFieldXPathType1 = "/html/body/div[5]/header/div/div/div/div[2]/div[2]/div/div/input[1]";
         String searchFieldXPathType2 = "/html/body/div[4]/header/div/div/div/div[2]/div[2]/div/div[2]/input[1]";
+
         WebElement searchField = null;
         try {
             searchField = driver.findElement(By.xpath(searchFieldXPathType1));
+        }
+        catch(NoSuchElementException e){
+            searchField = driver.findElement(By.xpath(searchFieldXPathType2));
         }
         catch(Exception e){
             searchField = driver.findElement(By.xpath(searchFieldXPathType2));
