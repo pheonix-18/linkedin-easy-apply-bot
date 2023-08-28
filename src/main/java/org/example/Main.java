@@ -30,6 +30,8 @@ public class Main {
     static JavascriptExecutor js;
     public static final List<String> MUST_NOT_HAVE, MUST_HAVE;
     private static Logger logger;
+
+    private static Boolean fastApply;
     static Scanner scanner;
 
     static Properties settingsProperties;
@@ -69,6 +71,11 @@ public class Main {
         // trim each word in the list
         mustHave = Arrays.stream(mustHave.toArray(new String[0])).map(String::trim).collect(Collectors.toList());
         MUST_HAVE = new ArrayList<String>(mustHave);
+        String fApply = settingsProperties.getProperty("fastApply");
+        if(fApply.equalsIgnoreCase("yes"))
+            fastApply = true;
+        else
+            fastApply = false;
         scanner = new Scanner(System.in);
         rand = new Random();
         wait = new WebDriverWait(driver, Duration.ofSeconds(10)).ignoring(StaleElementReferenceException.class);
@@ -249,6 +256,10 @@ public class Main {
     }
 
     private static void chooseToApply(Scanner scanner) {
+        if(fastApply){
+            applyForThisJob();
+            return;
+        }
         System.out.println("Do you want to apply for the job? (y/n) e to exit");
         String input = scanner.nextLine();
         if (input.trim().equalsIgnoreCase("e")) {
