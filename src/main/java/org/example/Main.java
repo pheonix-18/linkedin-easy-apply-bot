@@ -152,7 +152,8 @@ public class Main {
                 WebElement jobDescription = driver.findElement(By.cssSelector("article.jobs-description__container"));
 
                 String jobDescriptionText = jobDescription.getText();
-                logger.info("Job Description: " + jobDescriptionText);
+                if(!fastApply)
+                    logger.info("Job Description: " + jobDescriptionText);
                 if(filterJobDescription(jobDescriptionText))
                     continue;
                 chooseToApply(scanner);
@@ -274,6 +275,9 @@ public class Main {
     }
 
     private static void applyForThisJob() {
+        if(fastApply)
+            randomSleep(SHORT_SLEEP);
+        // TODO: WAIT FOR THE APPLY BUTTON TO BE VISIBLE
         WebElement applyButton = driver.findElement(By.xpath(
                 "/html/body/div[5]/div[3]/div[4]/div/div/main/div/div[2]/div/div[2]/div[1]/div/div[1]/div/div[1]/div[1]/div[4]/div/div/div/button"));
         applyButton.click();
@@ -320,7 +324,9 @@ public class Main {
 
         String closeButtonXPath = "/html/body/div[3]/div/div/button";
         new WebDriverWait(driver, Duration.ofSeconds(10))
+                .pollingEvery(Duration.ofSeconds(1))
                 .ignoring(StaleElementReferenceException.class)
+                .ignoring(ElementClickInterceptedException.class)
                 .until((WebDriver d)->{
                     d.findElement(By.xpath(closeButtonXPath)).click();
                     return true;
