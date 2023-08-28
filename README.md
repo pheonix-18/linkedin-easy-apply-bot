@@ -19,7 +19,7 @@ Bot will,
 4. Opens each job description, takes consent to and applies to the job.
 5. Moves to next job and repeats the process.
 
-Click [here](https://youtu.be/MjnX0g3bqQs) 🤖 to watch the video 
+Click [here](https://www.youtube.com/watch?v=p0o9hinCUGU) 🤖 to watch the video 
 # Current Usage
 
 Please note that this bot is still in development. 
@@ -30,12 +30,12 @@ for interships, full-times. This is a work in progress..
 Clone the library and make changes to `settings.properties` file to adjust the bot to your needs.
 
 # Video with Instructions
-Click [here](https://youtu.be/MjnX0g3bqQs) 🤖 to watch the video
+Click [here](https://www.youtube.com/watch?v=p0o9hinCUGU) 🤖 to watch the video 
 
 # Prerequisites
 
 * Java 11 or higher
-* Apache Maven
+* Apache Maven 3
 
 # How to use?
 1. Clone the repository.<br>
