@@ -171,7 +171,7 @@ public class Main {
         //Convert to lower case
         jobDescriptionText = jobDescriptionText.toLowerCase();
         String defaultExperience = settingsProperties.getProperty("filterJobsThatNeedMoreThanThisYearsOfExperience", "9");
-        int defaultExp = Integer.valueOf(defaultExperience);
+        int defaultExp = Integer.valueOf(defaultExperience) + 1;
         List<String> excludeExperienceWords = new ArrayList<>();
         while(defaultExp < 14){
             excludeExperienceWords.add(defaultExp + " years");
@@ -284,6 +284,8 @@ public class Main {
 
         // xpath for next button:
         // /html/body/div[3]/div/div/div[2]/div/div[2]/form/footer/div[2]/button
+//         /html/body/div[3]/div/div/div[2]/div/div[2]/form/footer/div[2]/button[2]
+//          html/body/div[3]/div/div/div[2]/div/div[2]/form/footer/div[2]/button[2]
 
         // submit button xpath:
         // /html/body/div[3]/div/div/div[2]/div/div[2]/div/footer/div[3]/button[2]
@@ -294,15 +296,15 @@ public class Main {
         try {
             WebElement formFooter = driver.findElement(By.xpath(
                     "/html/body/div[3]/div/div/div[2]/div/div[2]/form/footer"));
-            WebElement nextButton = formFooter.findElement(By.cssSelector(".artdeco-button--primary.ember-view"));
-            //find the button in the formFooter that has the CSS class artdeco-button--primary ember-view
+            WebElement nextButton = formFooter.findElement(By.cssSelector(".artdeco-button--primary"));
+            //find the button in the formFooter that has the CSS class artdeco-button--primary
             while (formFooter != null && nextButton != null) {
                 scrollToWebElement(nextButton, false);
                 logger.info("Found next button");
                 nextButton.click();
                 logger.info("Clicked next button");
                 randomSleep(SHORT_SLEEP);
-                nextButton = formFooter.findElement(By.cssSelector(".artdeco-button--primary.ember-view"));
+                nextButton = formFooter.findElement(By.cssSelector(".artdeco-button--primary"));
             }
 
         } catch (Exception e) {
