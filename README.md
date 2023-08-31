@@ -43,16 +43,20 @@ Click [here](https://www.youtube.com/watch?v=p0o9hinCUGU) 🤖 to watch the vide
 2. Change directory to linkedin-easy-apply-bot. <br>
 `cd linkedin-easy-apply-bot`
 3. Create a credentials.properties file in root directory and add your LinkedIn credentials as follows:
-<br>
-`touch credentials.properties`
-<br>
-`username=abc@example.com`
-<br>
-`password=examplePassword`
+```
+touch credentials.properties
+```
+```
+username=abc@example.com
+password=examplePassword
+```
 3. Run Maven commands to install dependencies
-4. Run `mvn clean install`
-5. Run `Main.java`
-6. Enjoy the Magic!
+4. Run
+   `mvn clean install`
+5. Open `settings.properties` file and customize your job search!
+6. Run
+   `Main.java`
+7. Enjoy the Magic!
 
 Please raise an issue with detailed info of your environment. 
 
