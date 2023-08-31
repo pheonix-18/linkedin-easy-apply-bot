@@ -34,22 +34,26 @@ Click [here](https://www.youtube.com/watch?v=p0o9hinCUGU) 🤖 to watch the vide
 
 # Prerequisites
 
-* Java 11 or higher
-* Apache Maven 3
+* Java 11 or higher (OpenJDK 11.0.19 - I have used Amazon Corretto 11.0.19)
+* Apache Maven 3.9.4
 
 # How to use?
 1. Clone the repository.<br>
 `git clone https://github.com/pheonix-18/linkedin-easy-apply-bot.git`
-<br>
+2. Change directory to linkedin-easy-apply-bot. <br>
 `cd linkedin-easy-apply-bot`
-2. Create a `credentials.properties` file in root directory and add your LinkedIn credentials as follows:
+3. Create a credentials.properties file in root directory and add your LinkedIn credentials as follows:
 <br>
-`username=<email>`
+`touch credentials.properties`
 <br>
-`password=<password>`
-3. Run Maven commands
-`
-4. Run `mvn clean install
-`
-4. Run `Main.java`
-5. Enjoy the Magic!
+`username=abc@example.com`
+<br>
+`password=examplePassword`
+3. Run Maven commands to install dependencies
+4. Run `mvn clean install`
+5. Run `Main.java`
+6. Enjoy the Magic!
+
+Please raise an issue with detailed info of your environment. 
+
+
